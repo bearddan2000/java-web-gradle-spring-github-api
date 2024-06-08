@@ -1,0 +1,67 @@
+version: '3'
+services:
+  db:
+    image: mariadb:latest
+    volumes:
+      - ./db/data_dump:/var/lib/mysql
+      - ./db/sql:/docker-entrypoint-initdb.d
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=true
+      - MYSQL_USER=maria
+      - MYSQL_PASSWORD=pass
+
+  java-seed-db-srv:
+    build:
+      context: 00-java-file-seed-db-srv
+    volumes:
+      - ./report/seed:/app/target
+    depends_on:
+      - db
+    links:
+      - "db:db"
+
+#  java-seed-db-srv:
+#    build:
+#      context: 00-java-seed-db-srv
+#    volumes:
+#      - ./report/seed:/app/target
+#    depends_on:
+#      - db
+#    links:
+#      - "db:db"
+
+#  java-rules-srv:
+#    build:
+#      context: java-rules-srv
+#    volumes:
+#      - ./report/rules:/app/target
+#    environment:
+#      - WAIT_HOSTS=java-seed-db-srv
+#      - WAIT_HOSTS_TIMEOUT=300
+#      - WAIT_SLEEP_INTERVAL=30
+#      - WAIT_HOST_CONNECT_TIMEOUT=30
+#    links:
+#      - "db:db"
+
+#  java-dashboard-srv:
+#    build:
+#      context: java-dashboard-srv
+#    volumes:
+#      - ./report/dashboard:/app/target
+#    ports:
+#      - "80:8080"
+#    depends_on:
+#      - java-rules-srv
+#    links:
+#      - "db:db"
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 81:8080
+    depends_on:
+      - java-file-seed-db-srv
+#      - java-rules-srv
+    links:
+      - "db:db"

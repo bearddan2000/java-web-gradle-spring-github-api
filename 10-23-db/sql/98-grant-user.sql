@@ -1,0 +1,2 @@
+GRANT ALL PRIVILEGES ON `portal`.* TO 'maria'@'%';
+FLUSH PRIVILEGES;

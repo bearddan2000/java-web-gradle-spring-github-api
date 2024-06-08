@@ -1,0 +1,101 @@
+buildscript {
+    ext {
+        serenityCoreVersion = '3.2.0'
+    }
+    repositories {
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+      classpath("net.serenity-bdd:serenity-gradle-plugin:${serenityCoreVersion}")
+      classpath("net.serenity-bdd:serenity-single-page-report:${serenityCoreVersion}")
+    }
+}
+
+plugins {
+  id 'java'
+}
+
+apply plugin: 'java'
+apply plugin: 'application'
+apply plugin: 'net.serenity-bdd.aggregator'
+
+defaultTasks 'clean', 'test', 'aggregate'
+
+jar {
+    baseName = 'boot-gradle'
+    version = '0.0.1-SNAPSHOT'
+}
+
+repositories {
+    jcenter()
+    mavenCentral()
+}
+
+sourceCompatibility = 11
+targetCompatibility = 11
+
+ext {
+    serenityVersion = '3.1.15'
+    lombokVersion = '1.18.2'
+    logbackVersion = '1.2.10'
+    jaxbVersion = '2.3.3'
+    hibernateVersion = '5.3.7.Final'
+}
+
+dependencies {
+  // app logger
+    implementation "ch.qos.logback:logback-core:${logbackVersion}"
+    implementation "ch.qos.logback:logback-classic:${logbackVersion}"
+    implementation 'org.slf4j:slf4j-api:1.7.32'
+  // api parsing
+    implementation 'org.json:json:20210307'
+    implementation 'com.google.code.gson:gson:2.8.5'
+ // databinding
+    implementation "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+  // database
+    implementation 'mysql:mysql-connector-java:8.0.29'
+  // database - hibernate
+    implementation "org.hibernate:hibernate-core:${hibernateVersion}"
+    implementation "jakarta.xml.bind:jakarta.xml.bind-api:${jaxbVersion}"
+		implementation "org.glassfish.jaxb:jaxb-runtime:${jaxbVersion}"
+  // test - junit5
+    testImplementation platform("org.junit:junit-bom:5.8.1"),
+      "org.junit.vintage:junit-vintage-engine",
+      "org.junit.platform:junit-platform-launcher",
+      "org.junit.jupiter:junit-jupiter-engine"
+  // test - serenity
+    testImplementation "net.serenity-bdd:serenity-screenplay:${serenityVersion}",
+      "net.serenity-bdd:serenity-junit5:${serenityVersion}"
+}
+
+
+test {
+    reports {
+        html.enabled = true
+    }
+
+    // Enable JUnit 5 (Gradle 4.6+).
+    useJUnitPlatform()
+
+    // Always run tests, even when nothing changed.
+    //dependsOn 'cleanTest'
+
+    // Show test results.
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
+
+serenity {
+    // Specify the root package of any JUnit acceptance tests to appear in the Serenity report
+    testRoot = "starter"
+    reports = ["single-page-html"]
+}
+
+mainClassName = 'example.Main'
+
+gradle.startParameter.continueOnFailure = true
+
+test.finalizedBy(aggregate)
